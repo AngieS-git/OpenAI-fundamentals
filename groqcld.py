@@ -22,11 +22,14 @@ completion = client.chat.completions.create(
         }
     ],
     #Some additional parameters
-    temperature=1.0,
+    temperature=1.0, #the entropy
     max_tokens=1024,
-    top_p=1,
+    top_p=1, #1 meaning use all tokens in the vocabulary
     stop=None,
-    stream=False
+    stream=True
 )
 
-print(completion.choices[0].message)
+#previously: print(chat_completion.choices[0].message.content)
+
+for chunk in completion:
+    print(chunk.choices[0].delta.content, end="") #basically more structured results from gen ai compared to just chat completion
