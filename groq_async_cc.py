@@ -26,10 +26,12 @@ async def main():
         max_tokens=1024,
         top_p=1,
         stop=None,
-        stream=False
+        stream=True
     )
 
-    print(chat_completion.choices[0].message.content)
+    #print(chat_completion.choices[0].message.content)
+    async for chunk in chat_completion:
+        print(chunk.choices[0].delta.content, end="")
 
 
 asyncio.run(main())
