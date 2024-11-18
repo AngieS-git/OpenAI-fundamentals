@@ -20,7 +20,13 @@ completion = client.chat.completions.create(
             focusing on pose estimation and natural language processing.
         """
         }
-    ]
+    ],
+    #Some additional parameters
+    temperature=1.0,
+    max_tokens=1024,
+    top_p=1,
+    stop=None,
+    stream=False
 )
 
 print(completion.choices[0].message)
