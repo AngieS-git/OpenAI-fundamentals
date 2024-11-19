@@ -15,7 +15,7 @@ class Ingredient(BaseModel):
     quantity: str
     quantity_unit:Optional[str]
 
-class Recipe(BaseModel):
+class Recipe(BaseModel): #the main structure
     recipe_name:str
     ingredients: List[Ingredient]
     directions: List[str]
