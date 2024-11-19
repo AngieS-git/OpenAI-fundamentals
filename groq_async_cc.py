@@ -12,7 +12,7 @@ async def main():
     chat_completion = await client.chat.completions.create(
         model="llama3-8b-8192", 
         messages = [
-        {
+            {
                 "role": "system",
                 "content": "you are a helpful assistant."
             },
