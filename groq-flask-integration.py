@@ -10,14 +10,14 @@ load_dotenv()
 api_key = os.getenv('GROQ_API_KEY')
 
 app = Flask(__name__)
-Groq.api_key = Groq(api_key=api_key)
+client = Groq(api_key=api_key)
 
 @app.route('/chat', methods=['POST'])
 def chat():
     data  = request.get_json()
     user_query = data.get('user_query')
 
-    response = api_key.chat.completions.create(
+    response = client.chat.completions.create(
          model="llama3-8b-8192", 
          messages=[
              {
@@ -26,7 +26,7 @@ def chat():
              },
              {
               "role":"user",
-              "content": {user_query}
+              "content": user_query
              }
          ]
     )
