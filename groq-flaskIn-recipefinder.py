@@ -13,7 +13,7 @@ load_dotenv
 api_key = os.getenv('GROQ_API_KEY')
 
 app = Flask(__name__)
-#recipe_finder = Groq(api_key=api_key)
+recipe_finder = Groq(api_key=api_key)
 
 #Create Structures
 class Ingredient(BaseModel):
@@ -26,6 +26,7 @@ class Recipe(BaseModel):
     ingredients: List[Ingredient]
     directions: List[str]
 
+#checking established network
 @app.route('/health', methods = ['GET'])
 def check_connection():
     ph_tz = pytz.timezone('Asia/Singapore')
@@ -39,7 +40,39 @@ def check_connection():
         "server_time":server_time
     }
 
-    return jsonify({"status":res_body})
+    return jsonify({"status":res_body}), 200
+
+#main function of recipe finder
+@app.route('/find', methods = ['POST'])
+def find_recipe_chat():
+    data = request.get_json()
+    user_query = data.get('user_query')
+
+    #error if no user query is inputted
+    if not user_query:
+        return jsonify({"error": "No user query provided by the user. Please enter the food you want to find the recipe for."}), 400
+
+    try:
+        response = recipe_finder.chat.completions.create(
+            model = "llama3-8b-8192",
+            messages = [
+                {
+                    "role": "system",
+                    "content": "You are a recipe finder ai bot that will send in json-format of the recipe to the user"
+                    f"The JSON object must use the schmema: {json.dumps(Recipe.model_json_schema(), indent =2)}",
+                },
+                {
+                    "role": "user",
+                    "content": user_query
+                }
+            ]
+        )
+
+        recipe_find_response = response.choices[0].message.content
+        return jsonify({'response': recipe_find_response})
+    
+    except Exception as e:
+        return jsonify({"Error Message: Internal Server Error"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
