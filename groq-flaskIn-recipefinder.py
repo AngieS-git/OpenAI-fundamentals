@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from flask import Flask, request, jsonify
 from groq import Groq
 
-load_dotenv
+load_dotenv()
 
 api_key = os.getenv('GROQ_API_KEY')
 
@@ -44,7 +44,7 @@ def check_connection():
 
 #main function of recipe finder
 @app.route('/find', methods = ['POST'])
-def find_recipe_chat():
+def find_recipe_chat(user_query: str) -> Recipe:
     data = request.get_json()
     user_query = data.get('user_query')
 
@@ -65,11 +65,28 @@ def find_recipe_chat():
                     "role": "user",
                     "content": user_query
                 }
-            ]
+            ],
+            temperature=0,
+            stream=False,
+            response_format={"type": "json_object"}
         )
 
         recipe_find_response = response.choices[0].message.content
-        return jsonify({'response': recipe_find_response})
+
+        #Better formatting of Recipe Results in JSON format
+        recipe_result_find = {
+            "Recipe": Recipe.recipe_name,
+            "Ingredients": ingrdnt_format,
+            "Directions": direct_format
+        }
+
+        for ingredient in Recipe.ingredients:
+            ingrdnt_format = f"- {ingredient.name} {ingredient.quantity} {ingredient.quantity_unit or ''}"
+
+        for step, direction in enumerate(Recipe.directions, start = 1):
+            direct_format = f"{step}. {direction}"
+
+        return jsonify(recipe_result_find)
     
     except Exception as e:
         return jsonify({"Error Message: Internal Server Error"}), 500
