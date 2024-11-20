@@ -44,7 +44,7 @@ def check_connection():
 
 #main function of recipe finder
 @app.route('/find', methods = ['POST'])
-def find_recipe_chat(user_query: str) -> Recipe:
+def find_recipe_chat() -> Recipe:
     data = request.get_json()
     user_query = data.get('user_query')
 
@@ -71,22 +71,42 @@ def find_recipe_chat(user_query: str) -> Recipe:
             response_format={"type": "json_object"}
         )
 
-        recipe_find_response = response.choices[0].message.content
+        #Recipe.model_validate_json(response.choices[0].message.content)
+        recipe_data = json.loads(response.choices[0].message.content)
 
         #Better formatting of Recipe Results in JSON format
-        recipe_result_find = {
-            "Recipe": Recipe.recipe_name,
-            "Ingredients": ingrdnt_format,
-            "Directions": direct_format
-        }
+        # recipe_result_find = {
+        #     "Recipe": Recipe.recipe_name,
+        #     "Ingredients": [
+        #         f"- {ingredient.name} {ingredient.quantity} {ingredient.quantity_unit or ''}"
+        #         for ingredient in Recipe.ingredients
+        #     ],
+        #     "Directions": [
+        #         f"{step}. {direction}"
+        #         for step, direction in enumerate(Recipe.directions, start = 1)
+        #     ]
+        # }
 
-        for ingredient in Recipe.ingredients:
-            ingrdnt_format = f"- {ingredient.name} {ingredient.quantity} {ingredient.quantity_unit or ''}"
+        recipe = Recipe(
+        recipe_name=recipe_data.get("recipe_name", ""),
+        ingredients=[
+            Ingredient(
+                name=ingredient["name"],
+                quantity=ingredient["quantity"],
+                quantity_unit=ingredient.get("quantity_unit", None)
+            ) for ingredient in recipe_data.get("ingredients", [])
+        ],
+        directions=recipe_data.get("directions", [])
+        )
 
-        for step, direction in enumerate(Recipe.directions, start = 1):
-            direct_format = f"{step}. {direction}"
+        # for ingredient in Recipe.ingredients:
+        #     ingrdnt_format = f"- {ingredient.name} {ingredient.quantity} {ingredient.quantity_unit or ''}"
 
-        return jsonify(recipe_result_find)
+        # for step, direction in enumerate(Recipe.directions, start = 1):
+        #     direct_format = f"{step}. {direction}"
+
+        #return jsonify(recipe_result_find)
+        return jsonify(recipe.dict())
     
     except Exception as e:
         return jsonify({"Error Message: Internal Server Error"}), 500
