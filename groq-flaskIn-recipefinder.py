@@ -74,38 +74,22 @@ def find_recipe_chat() -> Recipe:
         #Recipe.model_validate_json(response.choices[0].message.content)
         recipe_data = json.loads(response.choices[0].message.content)
 
-        #Better formatting of Recipe Results in JSON format
-        # recipe_result_find = {
-        #     "Recipe": Recipe.recipe_name,
-        #     "Ingredients": [
-        #         f"- {ingredient.name} {ingredient.quantity} {ingredient.quantity_unit or ''}"
-        #         for ingredient in Recipe.ingredients
-        #     ],
-        #     "Directions": [
-        #         f"{step}. {direction}"
-        #         for step, direction in enumerate(Recipe.directions, start = 1)
-        #     ]
-        # }
-
         recipe = Recipe(
-        recipe_name=recipe_data.get("recipe_name", ""),
-        ingredients=[
-            Ingredient(
-                name=ingredient["name"],
-                quantity=ingredient["quantity"],
-                quantity_unit=ingredient.get("quantity_unit", None)
-            ) for ingredient in recipe_data.get("ingredients", [])
-        ],
-        directions=recipe_data.get("directions", [])
+            recipe_name=recipe_data.get("recipe_name", ""),
+            ingredients=[
+                Ingredient(
+                    name=ingredient["name"],
+                    quantity=ingredient["quantity"],
+                    quantity_unit=ingredient.get("quantity_unit", None)
+                )
+                for ingredient in recipe_data.get("ingredients", [])
+            ],
+            directions=[
+                direction if direction.strip().startswith(f"{step}.") else f"{step}. {direction}"
+                for step, direction in enumerate(recipe_data.get("directions", []), start=1)
+            ]
         )
 
-        # for ingredient in Recipe.ingredients:
-        #     ingrdnt_format = f"- {ingredient.name} {ingredient.quantity} {ingredient.quantity_unit or ''}"
-
-        # for step, direction in enumerate(Recipe.directions, start = 1):
-        #     direct_format = f"{step}. {direction}"
-
-        #return jsonify(recipe_result_find)
         return jsonify(recipe.dict())
     
     except Exception as e:
